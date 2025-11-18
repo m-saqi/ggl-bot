@@ -1,11 +1,21 @@
 {
   "version": 2,
-  "functions": {
-    "api/automate.js": {
-      "maxDuration": 60
+  "builds": [
+    {
+      "src": "api/server.js",
+      "use": "@vercel/node"
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/server.js"
+    }
+  ],
+  "functions": {
+    "api/server.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
   }
 }
