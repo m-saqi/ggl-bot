@@ -1,12 +1,12 @@
 {
   "name": "google-automation-bot",
   "version": "1.0.0",
-  "description": "Robust Google automation bot for Vercel",
+  "description": "Robust Google automation bot",
   "main": "api/automate.js",
   "scripts": {
     "dev": "node api/server.js",
     "start": "node api/server.js",
-    "postinstall": "node -e \"try { require('puppeteer/install') } catch (e) { console.log('Skipping puppeteer download') }\""
+    "postinstall": "node -e \"try { require('puppeteer/install') } catch (e) { console.log('Puppeteer install script not found - skipping') }\""
   },
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
@@ -19,6 +19,6 @@
     "puppeteer": "^10.1.0"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   }
 }
