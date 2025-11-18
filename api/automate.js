@@ -6,11 +6,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files
+app.use(express.static('public'));
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Google Automation Bot is running',
+    timestamp: new Date().toISOString(),
     endpoints: {
       POST: '/api/automate'
     }
@@ -35,34 +39,45 @@ app.post('/api/automate', async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       success: false,
-      error: 'Invalid website URL format'
+      error: 'Invalid website URL format. Please include http:// or https://'
     });
   }
 
   let browser = null;
   
   try {
-    // Set response timeout
-    res.setTimeout(120000, () => {
+    console.log(`Starting automation for keyword: "${keyword}", website: ${websiteUrl}`);
+    
+    // Set longer timeout for Vercel
+    res.setTimeout(90000, () => {
       if (!res.headersSent) {
         res.status(408).json({
           success: false,
-          error: 'Request timeout'
+          error: 'Request timeout - automation took too long'
         });
       }
     });
 
-    // Initialize browser
+    // Initialize browser with error handling
     browser = new StealthBrowser();
     await browser.launch();
     await browser.createPage();
 
-    // Execute automation steps
-    await browser.navigateToGoogle();
-    await browser.searchKeyword(keyword);
-    await browser.findAndClickWebsite(websiteUrl);
-    await browser.humanScroll();
+    // Execute steps with individual error handling
+    const steps = [
+      { name: 'Navigating to Google', fn: () => browser.navigateToGoogle() },
+      { name: 'Searching keyword', fn: () => browser.searchKeyword(keyword) },
+      { name: 'Finding website', fn: () => browser.findAndClickWebsite(websiteUrl) },
+      { name: 'Scrolling page', fn: () => browser.humanScroll() }
+    ];
 
+    for (const step of steps) {
+      console.log(`Executing step: ${step.name}`);
+      await step.fn();
+    }
+
+    console.log('Automation completed successfully');
+    
     res.json({
       success: true,
       message: 'Automation completed successfully',
@@ -70,12 +85,7 @@ app.post('/api/automate', async (req, res) => {
         keyword,
         websiteUrl,
         timestamp: new Date().toISOString(),
-        steps: [
-          'Google navigation',
-          'Keyword search',
-          'Website click',
-          'Human scrolling'
-        ]
+        steps: steps.map(s => s.name)
       }
     });
 
@@ -85,14 +95,16 @@ app.post('/api/automate', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message,
-      step: 'Automation execution'
+      step: 'Automation execution',
+      suggestion: 'This might be due to temporary network issues or Google blocking the request. Please try again later.'
     });
     
   } finally {
-    // Cleanup
+    // Cleanup with error handling
     if (browser) {
       try {
         await browser.close();
+        console.log('Browser closed successfully');
       } catch (closeError) {
         console.error('Browser close error:', closeError);
       }
@@ -119,11 +131,3 @@ app.use('*', (req, res) => {
 
 // Export for Vercel
 module.exports = app;
-
-// Local development
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
