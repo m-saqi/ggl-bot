@@ -7,13 +7,13 @@
     "dev": "node api/server.js"
   },
   "dependencies": {
-    "puppeteer-core": "^21.6.1",
+    "puppeteer-core": "^10.1.0",
     "chrome-aws-lambda": "^10.1.0",
     "user-agents": "^1.1.1",
     "express": "^4.18.2",
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=16"
   }
 }
