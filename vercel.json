@@ -3,34 +3,23 @@
   "builds": [
     {
       "src": "api/automate.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "lib/**",
-          "public/**",
-          "node_modules/**" 
-        ]
-      }
+      "use": "@vercel/node"
     }
   ],
   "functions": {
     "api/automate.js": {
-      "maxDuration": 60,
+      "maxDuration": 10,
       "memory": 1024 
     }
   },
   "routes": [
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
     {
       "src": "/api/automate",
       "dest": "/api/automate.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/api/automate.js"
+      "dest": "/public/index.html"
     }
   ],
   "env": {
