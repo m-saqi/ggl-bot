@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "functions": {
+    "api/automate.js": {
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
