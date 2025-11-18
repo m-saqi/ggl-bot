@@ -15,6 +15,7 @@ app.get('/', (req, res) => {
     status: 'OK', 
     message: 'Google Automation Bot is running',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
     endpoints: {
       POST: '/api/automate'
     }
@@ -49,7 +50,7 @@ app.post('/api/automate', async (req, res) => {
     console.log(`Starting automation for keyword: "${keyword}", website: ${websiteUrl}`);
     
     // Set longer timeout for Vercel
-    res.setTimeout(90000, () => {
+    res.setTimeout(60000, () => {
       if (!res.headersSent) {
         res.status(408).json({
           success: false,
@@ -58,12 +59,12 @@ app.post('/api/automate', async (req, res) => {
       }
     });
 
-    // Initialize browser with error handling
+    // Initialize browser
     browser = new StealthBrowser();
     await browser.launch();
     await browser.createPage();
 
-    // Execute steps with individual error handling
+    // Execute steps
     const steps = [
       { name: 'Navigating to Google', fn: () => browser.navigateToGoogle() },
       { name: 'Searching keyword', fn: () => browser.searchKeyword(keyword) },
@@ -74,6 +75,7 @@ app.post('/api/automate', async (req, res) => {
     for (const step of steps) {
       console.log(`Executing step: ${step.name}`);
       await step.fn();
+      console.log(`Completed: ${step.name}`);
     }
 
     console.log('Automation completed successfully');
@@ -96,11 +98,11 @@ app.post('/api/automate', async (req, res) => {
       success: false,
       error: error.message,
       step: 'Automation execution',
-      suggestion: 'This might be due to temporary network issues or Google blocking the request. Please try again later.'
+      suggestion: 'This might be due to temporary network issues or Google blocking the request. Please try again in a few moments.'
     });
     
   } finally {
-    // Cleanup with error handling
+    // Cleanup
     if (browser) {
       try {
         await browser.close();
@@ -112,7 +114,7 @@ app.post('/api/automate', async (req, res) => {
   }
 });
 
-// Error handling middleware
+// Error handling
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
   res.status(500).json({
@@ -121,7 +123,6 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -129,5 +130,4 @@ app.use('*', (req, res) => {
   });
 });
 
-// Export for Vercel
 module.exports = app;
